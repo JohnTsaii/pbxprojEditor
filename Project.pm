@@ -1,0 +1,139 @@
+package Project;
+
+use strict;
+use warnings;
+
+use utf8;
+use PBXProject;
+use PBXNativeTarget;
+
+use FileHandle;
+use File::Basename;
+use JSON -convert_blessed_universally;
+use Data::Structure::Util qw(unbless);
+use open ':encoding(utf8)';
+
+my $dst_dir;
+
+sub new() {
+  my $class = shift;
+  my $file_path = shift;
+  my $data = _read_data_from_file($file_path);
+  my $self = $data;
+  bless($self, $class);
+  $self->_init();
+  return $self;
+}
+
+sub save() {
+  my $self = $_[0];
+  my $json_string;
+  unbless $self;
+  delete $self->{'project'}; # delete the project from origin data
+  $json_string = to_json($self,{allow_blessed=>1,convert_blessed=>1}); # convert object  to json
+  open(my $fh, '>', "$dst_dir/project_mutable.json");
+  print $fh $json_string;
+  close $fh;
+
+  unlink "$dst_dir/project.pbxproj"; # remvoe the origin project.pbxproj file
+  # file handle
+  system("/usr/bin/plutil -convert xml1 $dst_dir/project_mutable.json -o $dst_dir/project.pbxproj");
+  die 'convert xml format file failured : $!' if $? == -1;
+#  unlink "$dst_dir/project_mutable.json"; # remvoe origin json file
+}
+
+sub target() {
+  my $self = shift;
+  my $target_name = shift;
+  die "please speicfy the target name" until defined $target_name;
+  my $targets = $self->project->targets;
+  foreach (@$targets) {
+   # PBXNativeTarget
+   if ($_->name() eq $target_name) {
+     return $_;
+   }
+  }
+  die "not the speicfy target name";
+}
+
+# Debug Release 
+sub configuration() {
+  my $self = shift;
+  my $target = shift;
+  my $configuration = shift;
+  die "please speicfy the target name" until defined $target;
+  $configuration = 'Release'  until defined $configuration;
+  return $target->get_configuration_with_name($configuration);
+}
+
+# keyVakue like 'key=value'
+sub set_buildSettings_with_keyValue() {
+  my $self = shift;
+  my $target_name = shift;
+  my $configuration_name = shift;
+  die "please speicfy the target name" until defined $target_name;
+  my $target = $self->target($target_name);
+  my $configuration;
+  $configuration = $self->configuration($target, $configuration_name);
+  $configuration->set_entries(@_);
+}
+
+# Getter & Setter
+sub rootObject() {
+  $_[0]->{'rootObject'} = $_[1] if defined $_[1];
+   return $_[0]->{'rootObject'};
+}
+
+sub objects() {
+  $_[0]->{'objects'} = $_[1] if defined $_[1];
+  return $_[0]->{'objects'};
+}
+
+sub classes() {
+  $_[0]->{'classes'} = $_[1] if defined $_[1];
+  return $_[0]->{'classes'};
+}
+
+sub project() {
+  $_[0]->{'project'} = $_[1] if defined $_[1];
+  return $_[0]->{'project'};
+}
+
+# private method
+sub _init() {
+  my $self = $_[0];
+  my $objects = $self->objects();
+  my $rootObject = $self->rootObject();
+  my $data_project = $objects->{$rootObject};
+  my $project = PBXProject->new($data_project, $objects);
+  $self->project($project);
+}
+
+# private method
+
+sub _read_data_from_file() {
+  my $file_path = $_[0];
+  my $dst_filename;
+  if (defined $file_path && $file_path =~ m/project.pbxproj$/) {
+    my $file_dir = dirname($file_path);
+    $dst_dir = $file_dir;
+    $dst_filename = "$file_dir/project_tmp.json";
+    unlink $dst_filename;
+    system("/usr/bin/plutil -convert json $file_path -o $dst_filename");
+    die "failed to execute plutil: $!\n" unless $? != -1;
+  } else {
+    die "please specify the project.pbxproj file path";
+  }
+  
+  my $fh = FileHandle->new;
+  my $data;
+  if ($fh->open($dst_filename)) {
+    my $json = <$fh>;
+    $data = decode_json($json);
+    $fh->close;
+  }
+  unlink $dst_filename; # remvoe temp json file
+  return $data;
+}
+
+1;
