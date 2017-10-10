@@ -5,8 +5,8 @@ use warnings;
 
 use utf8;
 use PBXProject;
-use PBXNativeTarget;
 
+use Cwd;
 use FileHandle;
 use File::Basename;
 use JSON -convert_blessed_universally;
@@ -171,8 +171,9 @@ sub _init() {
 # private method
 
 sub _read_data_from_file() {
-  my $file_path = $_[0];
+  my $file_path = $_[0] or _get_default_path(); # if unpass the path then use default path
   my $dst_filename;
+  
   if (defined $file_path && $file_path =~ m/project.pbxproj$/) {
     my $file_dir = dirname($file_path);
     $dst_dir = $file_dir;
@@ -181,7 +182,7 @@ sub _read_data_from_file() {
     system("/usr/bin/plutil -convert json $file_path -o $dst_filename");
     die "failed to execute plutil: $!\n" unless $? != -1;
   } else {
-    die "please specify the project.pbxproj file path";
+    die "please specify the project.pbxproj file path line number: ", __LINE__;
   }
   
   my $fh = FileHandle->new;
@@ -193,6 +194,23 @@ sub _read_data_from_file() {
   }
   unlink $dst_filename; # remvoe temp json file
   return $data;
+}
+
+sub _get_default_path () {
+  # default is current dir is project root path
+  my $current_dir = cwd();
+  opendir (DIR, $current_dir) or die $!;
+  
+  while (my $file = readdir(DIR)) {
+    # seach the *.xcodeproj directory
+    if ($file =~ m/\.xcodeproj$/) {
+      $current_dir = join '', $current_dir, "/", $file, '/project.pbxproj';
+      last;
+    }
+  }
+
+  closedir(DIR);
+  return  $current_dir;
 }
 
 1;
