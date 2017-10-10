@@ -96,8 +96,6 @@ sub set_entries() {
     # second seach buildSetting key
     if (not $find_it) {
       $self->{buildSettings}->{$key} = $value if exists $self->{buildSettings}->{$key};
-      my $b = $self->{buildSettings};
-      print %$b, "\n";
       }
   }
 }
