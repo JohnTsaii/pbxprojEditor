@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use utf8;
-use PBXProject;
-
 use Cwd;
 use FileHandle;
 use File::Basename;
