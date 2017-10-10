@@ -39,17 +39,17 @@ sub save() {
   # file handle
   system("/usr/bin/plutil -convert xml1 $dst_dir/project_mutable.json -o $dst_dir/project.pbxproj");
   die 'convert xml format file failured : $!' if $? == -1;
-#  unlink "$dst_dir/project_mutable.json"; # remvoe origin json file
+  unlink "$dst_dir/project_mutable.json"; # remvoe origin json file
 }
 
 sub target() {
   my $self = shift;
   my $target_name = shift;
   die "please speicfy the target name" until defined $target_name;
-  my $targets = $self->project->targets;
+  my $targets = $self->targets;
   foreach (@$targets) {
    # PBXNativeTarget
-   if ($_->name() eq $target_name) {
+    if ($_->{name} eq $target_name) {
      return $_;
    }
   }
@@ -63,7 +63,7 @@ sub configuration() {
   my $configuration = shift;
   die "please speicfy the target name" until defined $target;
   $configuration = 'Release'  until defined $configuration;
-  return $target->get_configuration_with_name($configuration);
+  return $self->get_configuration_with_name($target, $configuration);
 }
 
 # keyVakue like 'key=value'
@@ -74,9 +74,36 @@ sub set_buildSettings_with_keyValue() {
   die "please speicfy the target name" until defined $target_name;
   my $target = $self->target($target_name);
   my $configuration;
-  $configuration = $self->configuration($target, $configuration_name);
-  $configuration->set_entries(@_);
+  $configuration = $self->get_configuration_with_name($target, $configuration_name);
+  $self->set_entries($configuration, @_);
 }
+
+sub set_entries() {
+  my $self = shift;
+  $self = shift;
+  foreach (@_) {
+    my @words = split /=/, $_;
+    my $key = shift @words;
+    my $value = shift @words;
+    my $find_it = 0;
+    # first seach buildConfiguration key
+    foreach (keys %$self) {
+      if ($_ eq $key) {
+	$self->{$key} = $value;
+	$find_it = 1;
+	last;
+      }
+    }
+
+    # second seach buildSetting key
+    if (not $find_it) {
+      $self->{buildSettings}->{$key} = $value if exists $self->{buildSettings}->{$key};
+      my $b = $self->{buildSettings};
+      print %$b, "\n";
+      }
+  }
+}
+
 
 # Getter & Setter
 sub rootObject() {
@@ -94,19 +121,51 @@ sub classes() {
   return $_[0]->{'classes'};
 }
 
-sub project() {
-  $_[0]->{'project'} = $_[1] if defined $_[1];
-  return $_[0]->{'project'};
+sub targets() {
+  my $self = shift;
+  my $rootObject = $self->rootObject;
+  my $rootObjectHash = $self->get_value_by_key_in_objects($rootObject);
+  my $key = $rootObjectHash->{'targets'};
+  my $targets = [];
+  foreach (@$key) {
+    my $targetHash = $self->get_value_by_key_in_objects($_);
+    push $targets, $targetHash;
+  }
+  return $targets;
+}
+
+sub get_value_by_key_in_objects() {
+  my $self = shift;
+  return $self->objects->{shift @_};
+}
+
+# get buildConfigurationList from the speicy target
+sub buildConfigurationList_with_target() {
+  my $self = shift;
+  my $target = shift;
+  my $buildConfigurationList = $target->{buildConfigurationList};
+  return $self->get_value_by_key_in_objects($buildConfigurationList);
+}
+
+sub get_configuration_with_name() {
+  my $self = shift;
+  my $target = shift;
+  my $configName = shift;
+  my $buildConfigurationList = $self->buildConfigurationList_with_target($target);
+  my $configurations = $buildConfigurationList->{buildConfigurations};
+  foreach (@$configurations) {
+    my $config = $self->get_value_by_key_in_objects($_);
+    next if not defined $config->{name};
+    if ($config->{'name'} eq $configName) {
+      return $config;
+    }
+  }
+  die "can't find the specify configuration name $configName with target ", $target->{"name"}, " line number:", __LINE__, "\n";
 }
 
 # private method
 sub _init() {
   my $self = $_[0];
-  my $objects = $self->objects();
-  my $rootObject = $self->rootObject();
-  my $data_project = $objects->{$rootObject};
-  my $project = PBXProject->new($data_project, $objects);
-  $self->project($project);
 }
 
 # private method
