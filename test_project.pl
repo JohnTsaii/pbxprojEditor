@@ -3,9 +3,8 @@
 use strict;
 use warnings;
 use Project;
-use Cwd;
 
-my $project = Project->new('/Users/John/Desktop/RoadHomeRepo/roadHomeIOS/trunk/RoadHome.xcodeproj/project.pbxproj');
+my $project = Project->new();
 
 sub test_PBXProject() {
   $project->set_buildSettings_with_keyValue('RoadHome', 'Debug', "CODE_SIGN_IDENTITY=code1", "DEVELOPMENT_TEAM=12");
