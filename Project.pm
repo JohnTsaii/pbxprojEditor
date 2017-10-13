@@ -40,8 +40,7 @@ if (scalar @ARGV) {
 	push @parameters, $_;
       }
     }
-  print @parameters;
-  exit;
+  # pass the parameters to project object
   $project->set_buildSettings_with_keyValue(@parameters);
 } else {
   print_help();
