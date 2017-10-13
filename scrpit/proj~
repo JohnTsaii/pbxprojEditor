@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Project;
+
+# subroutine declaration
+sub print_help();
+
+# is it pass argvs
+if (scalar @ARGV) {
+  my $project = Project->new(); # new project with the current path TODO: support to speicy file path
+
+  my @parameters; # use to push parameter that use to set_buildSettings_with_keyValue
+  my @args = map { $_ } @ARGV;
+  my $args = \@args;
+  my $index = 0;
+    foreach (@ARGV) {
+      $index ++;
+      if ($_ =~ /^-target/) {
+	my $target = $args[$index];
+	push @parameters, $target;
+	next;
+      }
+    
+      if ($_ =~ /^-configuration/) {
+	my $config = $args[$index];
+	push @parameters, $config;
+	next;
+      }
+    
+      if ($_=~ /=/) {
+	push @parameters, $_;
+      }
+    }
+  # pass the parameters to project object
+  $project->set_buildSettings_with_keyValue(@parameters);
+} else {
+  print_help();
+  exit;
+}
+
+# help desc
+sub print_help() {
+  print <<EOF
+-target          :specify the need be edited target.
+-configuration :specify the need be edited configuration, that must need be specify target
+EOF
+}

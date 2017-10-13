@@ -1,4 +1,4 @@
-package Project;
+package Xcode::Project;
 
 use strict;
 use warnings;
@@ -10,50 +10,6 @@ use File::Basename;
 use JSON -convert_blessed_universally;
 use Data::Structure::Util qw(unbless);
 use open ':encoding(utf8)';
-
-# subroutine declaration
-sub print_help();
-
-# OP
-if (scalar @ARGV) {
-  my $project = Project->new();
-
-  my @parameters; # use to push parameter that use to set_buildSettings_with_keyValue
-  my @args = map { $_ } @ARGV;
-  my $args = \@args;
-  my $index = 0;
-    foreach (@ARGV) {
-      $index ++;
-      if ($_ =~ /^-target/) {
-	my $target = $args[$index];
-	push @parameters, $target;
-	next;
-      }
-    
-      if ($_ =~ /^-configuration/) {
-	my $config = $args[$index];
-	push @parameters, $config;
-	next;
-      }
-    
-      if ($_=~ /=/) {
-	push @parameters, $_;
-      }
-    }
-  # pass the parameters to project object
-  $project->set_buildSettings_with_keyValue(@parameters);
-} else {
-  print_help();
-  exit;
-}
-
-# help desc
-sub print_help() {
-  print <<EOF
--target          :specify the need be edited target.
--configuration :specify the need be edited configuration, that must need be specify target
-EOF
-}
 
 # OO
 my $dst_dir;
