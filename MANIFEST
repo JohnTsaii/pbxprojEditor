@@ -1,0 +1,8 @@
+lib/Xcode/PBXObject.pm
+lib/Xcode/Project.pm
+LICENSE
+Makefile.pl
+MANIFEST			This list of files
+README.md
+scrpit/proj
+test_project.pl

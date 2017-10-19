@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Project;
+use Xcode::Project;
 
 my $project = Project->new();
 

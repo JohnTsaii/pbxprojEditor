@@ -14,12 +14,12 @@
 #     AUTHOR => [q[John Tsai]]
 #     BUILD_REQUIRES => {  }
 #     CONFIGURE_REQUIRES => {  }
-#     EXE_FILES => [q[scrpit/proj]]
+#     EXE_FILES => [q[script/proj]]
 #     LICENSE => q[freebsd]
 #     META_MERGE => { meta-spec=>{ version=>q[2] }, resources=>{ repository=>{ type=>q[git], url=>q[https://github.com/JohnTsaii/pbxprojEditor.git], web=>q[https://github.com/JohnTsaii/pbxprojEditor] } } }
 #     MIN_PERL_VERSION => q[5.016000]
 #     NAME => q[Xcode::Project]
-#     PREREQ_PM => { strict=>q[0], warnings=>q[0] }
+#     PREREQ_PM => { Cwd=>q[3.39_02], Data::Structure::Util=>q[0.16], File::Basename=>q[2.84], FileHandle=>q[2.02], JSON=>q[2.94], strict=>q[0], warnings=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/Xcode/Project.pm]
 
@@ -428,7 +428,7 @@ manifypods : pure_all config
 
 # --- MakeMaker installbin section:
 
-EXE_FILES = scrpit/proj
+EXE_FILES = script/proj
 
 pure_all :: $(INST_SCRIPT)/proj
 	$(NOECHO) $(NOOP)
@@ -437,9 +437,9 @@ realclean ::
 	$(RM_F) \
 	  $(INST_SCRIPT)/proj 
 
-$(INST_SCRIPT)/proj : scrpit/proj $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+$(INST_SCRIPT)/proj : script/proj $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/proj
-	$(CP) scrpit/proj $(INST_SCRIPT)/proj
+	$(CP) script/proj $(INST_SCRIPT)/proj
 	$(FIXIN) $(INST_SCRIPT)/proj
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/proj
 
@@ -521,6 +521,11 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '    - t' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - inc' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
+	$(NOECHO) $(ECHO) '  Cwd: 3.39_02' >> META_new.yml
+	$(NOECHO) $(ECHO) '  Data::Structure::Util: '\''0.16'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) '  File::Basename: '\''2.84'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) '  FileHandle: '\''2.02'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) '  JSON: '\''2.94'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) '  perl: '\''5.016000'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) '  strict: '\''0'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) '  warnings: '\''0'\''' >> META_new.yml
@@ -563,6 +568,11 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '      },' >> META_new.json
 	$(NOECHO) $(ECHO) '      "runtime" : {' >> META_new.json
 	$(NOECHO) $(ECHO) '         "requires" : {' >> META_new.json
+	$(NOECHO) $(ECHO) '            "Cwd" : "3.39_02",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "Data::Structure::Util" : "0.16",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "File::Basename" : "2.84",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "FileHandle" : "2.02",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "JSON" : "2.94",' >> META_new.json
 	$(NOECHO) $(ECHO) '            "perl" : "5.016000",' >> META_new.json
 	$(NOECHO) $(ECHO) '            "strict" : "0",' >> META_new.json
 	$(NOECHO) $(ECHO) '            "warnings" : "0"' >> META_new.json
@@ -885,6 +895,11 @@ ppd :
 	$(NOECHO) $(ECHO) '    <AUTHOR>John Tsai</AUTHOR>' >> Xcode-Project.ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> Xcode-Project.ppd
 	$(NOECHO) $(ECHO) '        <PERLCORE VERSION="5,016000,0,0" />' >> Xcode-Project.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Cwd::" VERSION="3.39_02" />' >> Xcode-Project.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Data::Structure::Util" VERSION="0.16" />' >> Xcode-Project.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="File::Basename" VERSION="2.84" />' >> Xcode-Project.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="FileHandle::" VERSION="2.02" />' >> Xcode-Project.ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="JSON::" VERSION="2.94" />' >> Xcode-Project.ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="strict::" />' >> Xcode-Project.ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="warnings::" />' >> Xcode-Project.ppd
 	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="darwin-2level-5.16" />' >> Xcode-Project.ppd
