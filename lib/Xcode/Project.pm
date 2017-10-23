@@ -1,6 +1,6 @@
 package Xcode::Project;
 
-our $VERSION = 0.0.2;
+our $VERSION = '0.001001';
 
 use strict;
 use warnings;
